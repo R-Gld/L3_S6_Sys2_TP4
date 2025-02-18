@@ -77,12 +77,41 @@ int main(const int argc, char ** argv) {
             return EXIT_FAILURE;
         }
     }
-    for (int i = 0; i < line_size; ++i) {
-        for (int j = 0; j < line_size; ++j) {
-            printf("[%ld] ", base_arr[i][j]);
+
+    long global_sum = 0;
+
+    for (int sum_idx = 0; sum_idx < line_size; ++sum_idx) {
+        struct sum_param sum_param_value = { .arr_size = line_size };
+        sum_param_value.arr = base_arr[sum_idx];
+
+        pthread_t tid;
+        int err = pthread_create(&tid, NULL, sum_func, &sum_param_value);
+        if (err != 0) {
+            free_arr(base_arr, line_size);
+            errno = err;
+            perror("pthread_create");
+            return EXIT_FAILURE;
         }
-        printf("\n");
+
+        void* ret_value_ptr;
+        err = pthread_join(tid, &ret_value_ptr);
+        if (err != 0) {
+            free_arr(base_arr, line_size);
+            errno = err;
+            perror("pthread_join");
+            return EXIT_FAILURE;
+        }
+        if (ret_value_ptr == NULL) {
+            free_arr(base_arr, line_size);
+            fprintf(stderr, "An error occur while trying to allocate the return value of the sum thread n%ld", tid);
+            return EXIT_FAILURE;
+        }
+        const long ret_value = *(long *) ret_value_ptr;
+        free(ret_value_ptr);
+        global_sum += ret_value;
     }
+
+    printf("Global Sum: %ld (Number of long added: %ld)\n", global_sum, (line_size*line_size));
 
     free_arr(base_arr, line_size);
     return EXIT_SUCCESS;
