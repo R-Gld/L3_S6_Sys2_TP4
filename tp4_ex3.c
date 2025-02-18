@@ -45,14 +45,14 @@ int main(const int argc, char ** argv) {
 
     srand((unsigned int) time(NULL) ^ getpid());
 
-    for (int i = 0; i < line_size; ++i) {
+    for (int init_idx = 0; init_idx < line_size; ++init_idx) {
         // Create a thread per line.
         struct init_param init_param_value = {
             .min = min,
             .max = max,
             .arr_size = line_size
         };
-        init_param_value.arr = base_arr[i];
+        init_param_value.arr = base_arr[init_idx];
 
         pthread_t tid;
         int err = pthread_create(&tid, NULL, init_func, &init_param_value);
