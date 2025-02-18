@@ -8,7 +8,7 @@
 void* exec_func(void *num_print_ptr) {
     const int num_print = *(int *) num_print_ptr;
     for (int i = 1; i < num_print+1; ++i) {
-        printf("pt_id %lu / sys_id %lu: %d\n", pthread_self(), syscall(SYS_gettid), i);
+        printf("pt_id %lu / sys_id %ld: %d\n", pthread_self(), syscall(SYS_gettid), i);
         sleep(1);
     }
     return NULL;
