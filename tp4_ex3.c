@@ -130,6 +130,21 @@ void *init_func(void *arg) {
     return NULL;
 }
 
+void *sum_func(void *arg) {
+    const struct sum_param param = *(struct sum_param *) arg;
+    const long *arr = param.arr;
+    const size_t arr_size = param.arr_size;
+    // ReSharper disable once CppDFAMemoryLeak
+    long *sum_value_ptr = malloc(sizeof(long));
+    if (sum_value_ptr == NULL) return NULL;
+
+    *sum_value_ptr = 0;
+    for (int i = 0; i < arr_size; ++i) {
+        *sum_value_ptr += arr[i];
+    }
+    pthread_exit(sum_value_ptr);
+}
+
 long **allocate_arr(const long size) {
     long **base_arr = malloc(sizeof(long *) * size);
     if (base_arr == NULL) {
