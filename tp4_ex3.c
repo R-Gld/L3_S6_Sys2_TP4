@@ -19,6 +19,13 @@ struct init_param {
 void *init_func(void *arg);
 
 
+struct sum_param {
+    long *arr;
+    size_t arr_size;
+};
+void *sum_func(void *arg);
+
+
 
 /**
  * Utiliser l’exercice précédent pour initialiser une matrice de mani`ere al´eatoire<br>
