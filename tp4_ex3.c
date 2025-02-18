@@ -21,9 +21,8 @@ void *init_func(void *arg);
 
 
 /**
- * Ecrire un programme qui permet d’initialiser avec des valeurs aléatoires une matrice d’entiers, de manière concurrente, ligne par ligne<br>
- * Pour implémenter ce mécanisme, les éléments d’une même ligne seront initialisés par un thread (voir l’exercice 3 du TP3).<br>
- * Important. La donn´ee applicative doit ˆetre l’information principale manipul´ee par le programme principal. Les param`etres des routines sont des informations interm´ediaires secondaires.
+ * Utiliser l’exercice précédent pour initialiser une matrice de mani`ere al´eatoire<br>
+* Cr´eer un thread pour chaque ligne de la matrice qui calcule la somme des ´el´ements de la ligne correspondante et le programme principal calcule la somme finale, additionnant toutes les sommes partielles, des lignes, calcul´ees par les threads
  */
 int main(const int argc, char ** argv) {
     if (argc != 4) {
