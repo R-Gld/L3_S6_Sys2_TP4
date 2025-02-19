@@ -175,6 +175,9 @@ void free_arr(long ** base_arr, const long size) {
     free(base_arr);
 }
 
+/**
+ * Function developed <a href="https://github.com/R-Gld/L3_S6_Sys2_TP3/blob/62523aedb01348e89335ea333437e414b11cd033/ex3.c#L79-L97">here</a>.
+ */
 long convertWithCheck(const char *arg) {
     char *endPointer;
     const long result = strtol(arg, &endPointer, 10);
