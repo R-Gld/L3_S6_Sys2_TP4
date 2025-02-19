@@ -41,3 +41,7 @@ Create two thread for each line:
 ```shell
 ./build/TP4_ex3 <min> <max> <line_size>
 ```
+
+## Known issues
+
+The maximum number of concurrent threads created is two because we wait for each one to finish before creating another (calling `pthread_create` and immediately call `pthread_join`).
