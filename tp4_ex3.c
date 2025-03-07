@@ -6,6 +6,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#define THREAD_MAX_FILE_PATH "/proc/sys/kernel/threads-max"
+
 long convertWithCheck(const char *arg);
 void free_arr(long ** base_arr, long size);
 long **allocate_arr(long size);
@@ -26,6 +28,8 @@ struct sum_param {
 void *sum_func(void *arg);
 
 
+long max_thread_count();
+
 
 /**
  * Utiliser l’exercice précédent pour initialiser une matrice de mani`ere al´eatoire<br>
@@ -45,14 +49,23 @@ int main(const int argc, char ** argv) {
         min = tmp;
     }
 
-    const long line_size = convertWithCheck(argv[3]);
+    long line_size = convertWithCheck(argv[3]);
+    const long max_thread = max_thread_count();
+
+    if (line_size > max_thread) {
+        fprintf(stderr, "The number of threads asked (%ld) is > to the max setup in %s (%ld) value setup to %ld", line_size, THREAD_MAX_FILE_PATH, max_thread, max_thread);
+        line_size = max_thread;
+    }
 
     long ** base_arr = allocate_arr(line_size);
     // malloc done.
 
     srand((unsigned int) time(NULL) ^ getpid());
 
-    for (int init_idx = 0; init_idx < line_size; ++init_idx) {
+    int err;
+    pthread_t tids[line_size];
+
+    for (long init_idx = 0; init_idx < line_size; ++init_idx) {
         // Create a thread per line.
         struct init_param init_param_value = {
             .min = min,
@@ -62,14 +75,19 @@ int main(const int argc, char ** argv) {
         init_param_value.arr = base_arr[init_idx];
 
         pthread_t tid;
-        int err = pthread_create(&tid, NULL, init_func, &init_param_value);
+        err = pthread_create(&tid, NULL, init_func, &init_param_value);
         if (err != 0) {
             free_arr(base_arr, line_size);
             errno = err;
             perror("pthread_create");
             return EXIT_FAILURE;
         }
-        err = pthread_join(tid, NULL);
+        tids[init_idx] = tid;
+    }
+
+    // separate pthread_create and pthread_join to create all the threads in one time.
+    for (long init_idx = 0; init_idx < line_size; ++init_idx) {
+        err = pthread_join(tids[init_idx], NULL);
         if (err != 0) {
             free_arr(base_arr, line_size);
             errno = err;
@@ -80,21 +98,24 @@ int main(const int argc, char ** argv) {
 
     long global_sum = 0;
 
-    for (int sum_idx = 0; sum_idx < line_size; ++sum_idx) {
+    for (long sum_idx = 0; sum_idx < line_size; ++sum_idx) {
         struct sum_param sum_param_value = { .arr_size = line_size };
         sum_param_value.arr = base_arr[sum_idx];
 
         pthread_t tid;
-        int err = pthread_create(&tid, NULL, sum_func, &sum_param_value);
+        err = pthread_create(&tid, NULL, sum_func, &sum_param_value);
         if (err != 0) {
             free_arr(base_arr, line_size);
             errno = err;
             perror("pthread_create");
             return EXIT_FAILURE;
         }
+        tids[sum_idx] = tid;
+    }
 
+    for (int sum_idx = 0; sum_idx < line_size; ++sum_idx) {
         void* ret_value_ptr;
-        err = pthread_join(tid, &ret_value_ptr);
+        err = pthread_join(tids[sum_idx], &ret_value_ptr);
         if (err != 0) {
             free_arr(base_arr, line_size);
             errno = err;
@@ -103,7 +124,7 @@ int main(const int argc, char ** argv) {
         }
         if (ret_value_ptr == NULL) {
             free_arr(base_arr, line_size);
-            fprintf(stderr, "An error occur while trying to allocate the return value of the sum thread n%ld", tid);
+            fprintf(stderr, "An error occur while trying to allocate the return value of the sum thread n%ld", tids[sum_idx]);
             return EXIT_FAILURE;
         }
         const long ret_value = *(long *) ret_value_ptr;
@@ -115,6 +136,25 @@ int main(const int argc, char ** argv) {
 
     free_arr(base_arr, line_size);
     return EXIT_SUCCESS;
+}
+
+long max_thread_count() {
+    long threads_max;
+
+    FILE *fp = fopen(THREAD_MAX_FILE_PATH, "r");
+    if (fp == NULL) {
+        perror("fopen");
+        return EXIT_FAILURE;
+    }
+
+    if (fscanf(fp, "%ld", &threads_max) != 1) {
+        fprintf(stderr, "Error reading threads-max\n");
+        fclose(fp);
+        return EXIT_FAILURE;
+    }
+
+    fclose(fp);
+    return threads_max;
 }
 
 void *init_func(void *arg) {
