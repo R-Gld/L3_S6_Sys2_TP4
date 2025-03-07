@@ -30,8 +30,7 @@ int main(const int argc, char ** argv) {
         fprintf(stderr, "Usage: %s <min> <max> <line_size>\n!!: In total, there is line_size² value calculated.", argv[0]);
         return EXIT_FAILURE;
     }
-    long min = convertWithCheck(argv[1]);
-    long max = convertWithCheck(argv[2]);
+    long min = convertWithCheck(argv[1]), max = convertWithCheck(argv[2]);
 
     if (max < min) {
         const long tmp = min;
