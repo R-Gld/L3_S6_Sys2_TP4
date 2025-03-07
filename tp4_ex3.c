@@ -147,8 +147,9 @@ long max_thread_count() {
         return EXIT_FAILURE;
     }
 
-    if (fscanf(fp, "%ld", &threads_max) != 1) {
+    if (fscanf(fp, "%ld", &threads_max) == EOF) {
         fprintf(stderr, "Error reading threads-max\n");
+        perror("fscanf");
         fclose(fp);
         return EXIT_FAILURE;
     }
